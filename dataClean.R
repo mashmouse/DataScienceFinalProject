@@ -7,6 +7,8 @@ library(ngram)
 library(openNLP)
 library(NLP)
 
+#upload raw data from where they have been downloaded to
+#source (https://www.kaggle.com/pedromiguelmarques/tidytext-analysis-of-r-questions-on-stack-overflow/data?scriptVersionId=408262)
 answers = read.csv("~/DataScience/FinalProject/rquestions/Answers.csv")
 tags = read.csv("~/DataScience/FinalProject/rquestions/Tags.csv")
 questions = read.csv("~/DataScience/FinalProject/rquestions/Questions.csv")
@@ -20,9 +22,7 @@ getBodyTextCount = function(content) {
 }
 answers = mutate(answers,  answerTextLength = mapply(getBodyTextCount, answers$Body))
 
-#write.csv(answers, file = "answers_getBodyTextCount.csv")
 
-#umtate boolena answer body contains image
 answers = mutate(answers, containsImage = grepl("<img src", answers$Body))
 
 #mutate boolean answer body contains code
@@ -38,8 +38,7 @@ questions = questions[,1:6]
 questions$Id = as.numeric(questions$Id)
 
 answers = answers[,2:11]
-names(answers) = c("AnswerOwnerUserId", "AnswerCreationDate", 
-                   "ParentId", "AnswerScore", "IsAcceptedAnswer", "AnswerBody", "AnswerBodyTextCount", "ContainsImage", "ContainsCode", "ContainsLink")
+names(answers) = c("AnswerOwnerUserId", "AnswerCreationDate", "ParentId", "AnswerScore", "IsAcceptedAnswer", "AnswerBody", "AnswerBodyTextLength", "ContainsImage", "ContainsCode", "ContainsLink")
 names(questions) = c("Id", "QuestionOwnerUserId", "QuestionCreationDate", 
                     "QuestionScore", "QuestionTitle", "QuestionBody")
 
@@ -76,6 +75,8 @@ options(scipen = 999) #stop scientific notation
 qa = mutate(qa, ResponseTimeHours = as.double(mapply(getTimeDif, as.character(qa$QuestionCreationDate), 
                                            as.character(qa$AnswerCreationDate))))
 
+write.csv(qa, file = "RquestionsData.csv")
+
 #number of intersecting noun phrases between quetion and answer
 #getIntersectionCount = function(qBody, aBody) {
   #strip html and puncutation from qBody and aBody and lower text
@@ -89,15 +90,19 @@ qa = mutate(qa, ResponseTimeHours = as.double(mapply(getTimeDif, as.character(qa
   #APOSwords <- subset(APOSAnnotation, type == "word")
   #QPOSwords <- subset(QPOSAnnotation, type == "word")
   # get tags for words in body
-  #Atags <- sapply(APOSwords$features, '[[', "POS")
-  #Qtags <- sapply(QPOSwords$features, '[[', "POS")
+  Atags <- sapply(APOSwords$features, '[[', "POS")
+  Qtags <- sapply(QPOSwords$features, '[[', "POS")
+  #get words vec split on white space   
+  aWords = strsplit(aText, "\\s+")[[1]]
+  qWords = strsplit(qText, "\\s+")[[1]]
+  #(eliminate empty string entries)
+  aWords = aWords[aWords != ""]
+  qWords = qWords[qWords != ""]
   # join the vectors of words into data frame. Filter to keep only nouns
-  #aWords = strsplit(aText, "\\s+")
-  #qWords = strsplit(qText, "\\s+")
-  #Atagged <- data.frame(Tokens = unlist(aWords, use.names = FALSE), Tags = Atags)
-  #Atagged = filter(Atagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
-  #Qtagged <- data.frame(Tokens = unlist(qWords, use.names = FALSE), Tags = Qtags)
-  #Qtagged = filter(Qtagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
+  Atagged <- data.frame(Tokens = unlist(aWords, use.names = FALSE), Tags = Atags)
+  Atagged = filter(Atagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
+  Qtagged <- data.frame(Tokens = unlist(qWords, use.names = FALSE), Tags = Qtags)
+  Qtagged = filter(Qtagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
   #get set intersection of words that were tagged as nouns 
   #intersection = intersect(Atagged$Tokens, Qtagged$Tokens)
   #return number of intersections
@@ -151,5 +156,5 @@ getIntersectionCount<- function(qBody, aBody){
   return(length(intersec)/ (length(qWords) + length(aWords)))
 }
 
-
-qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), as.character(qa$AnswerBody))))
+qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), 
+                                                     as.character(qa$AnswerBody))))

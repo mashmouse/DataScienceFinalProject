@@ -4,8 +4,8 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(ngram)
-#library(openNLP)
-#library(NLP)
+library(openNLP)
+library(NLP)
 
 answers = read.csv("~/DataScience/FinalProject/rquestions/Answers.csv")
 tags = read.csv("~/DataScience/FinalProject/rquestions/Tags.csv")
@@ -20,7 +20,7 @@ getBodyTextCount = function(content) {
 }
 answers = mutate(answers,  answerTextLength = mapply(getBodyTextCount, answers$Body))
 
-write.csv(answers, file = "answers_getBodyTextCount.csv")
+#write.csv(answers, file = "answers_getBodyTextCount.csv")
 
 #umtate boolena answer body contains image
 answers = mutate(answers, containsImage = grepl("<img src", answers$Body))
@@ -33,8 +33,13 @@ answers = mutate(answers, containsLink = grepl("<a href", answers$Body))
 
 #alter similar column names between questions and answers to prepare for merge
 answers$Id = NULL #destroy useless column
+
+questions = questions[,1:6]
+questions$Id = as.numeric(questions$Id)
+
+answers = answers[,2:11]
 names(answers) = c("AnswerOwnerUserId", "AnswerCreationDate", 
-                   "ParentId", "AnswerScore", "IsAcceptedAnswer", "AnswerBody")
+                   "ParentId", "AnswerScore", "IsAcceptedAnswer", "AnswerBody", "AnswerBodyTextCount", "ContainsImage", "ContainsCode", "ContainsLink")
 names(questions) = c("Id", "QuestionOwnerUserId", "QuestionCreationDate", 
                     "QuestionScore", "QuestionTitle", "QuestionBody")
 
@@ -72,31 +77,79 @@ qa = mutate(qa, ResponseTimeHours = as.double(mapply(getTimeDif, as.character(qa
                                            as.character(qa$AnswerCreationDate))))
 
 #number of intersecting noun phrases between quetion and answer
-getIntersectionCount = function(qBody, aBody) {
+#getIntersectionCount = function(qBody, aBody) {
   #strip html and puncutation from qBody and aBody and lower text
-  qText = tolower(gsub("[[:punct:]]", "", gsub("<.*?>", " ", qBody)))
-  aText = tolower(gsub("[[:punct:]]", "", gsub("<.*?>", " ", aBody)))
+  #qText = tolower(gsub("[[:punct:]]", "", gsub("<.*?>", " ", qBody)))
+  #aText = tolower(gsub("[[:punct:]]", "", gsub("<.*?>", " ", aBody)))
   #do part of speech tagging on stripped bodies.
-  AwordAnnotation <- annotate(aText, list(Maxent_Sent_Token_Annotator(), Maxent_Word_Token_Annotator()))
-  QwordAnnotation <- annotate(qText, list(Maxent_Sent_Token_Annotator(), Maxent_Word_Token_Annotator()))
-  APOSAnnotation <- annotate(aText, Maxent_POS_Tag_Annotator(), AwordAnnotation)
-  QPOSAnnotation <- annotate(qText, Maxent_POS_Tag_Annotator(), QwordAnnotation)
-  APOSwords <- subset(APOSAnnotation, type == "word")
-  QPOSwords <- subset(QPOSAnnotation, type == "word")
+  #AwordAnnotation <- annotate(aText, list(Maxent_Sent_Token_Annotator(), Maxent_Word_Token_Annotator()))
+  #QwordAnnotation <- annotate(qText, list(Maxent_Sent_Token_Annotator(), Maxent_Word_Token_Annotator()))
+  #APOSAnnotation <- annotate(aText, Maxent_POS_Tag_Annotator(), AwordAnnotation)
+  #QPOSAnnotation <- annotate(qText, Maxent_POS_Tag_Annotator(), QwordAnnotation)
+  #APOSwords <- subset(APOSAnnotation, type == "word")
+  #QPOSwords <- subset(QPOSAnnotation, type == "word")
   # get tags for words in body
-  Atags <- sapply(APOSwords$features, '[[', "POS")
-  Qtags <- sapply(QPOSwords$features, '[[', "POS")
+  #Atags <- sapply(APOSwords$features, '[[', "POS")
+  #Qtags <- sapply(QPOSwords$features, '[[', "POS")
   # join the vectors of words into data frame. Filter to keep only nouns
-  aWords = strsplit(aText, "\\s+")
-  qWords = strsplit(qText, "\\s+")
-  Atagged <- data.frame(Tokens = unlist(aWords, use.names = FALSE), Tags = Atags)
-  Atagged = filter(Atagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
-  Qtagged <- data.frame(Tokens = unlist(qWords, use.names = FALSE), Tags = Qtags)
-  Qtagged = filter(Qtagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
+  #aWords = strsplit(aText, "\\s+")
+  #qWords = strsplit(qText, "\\s+")
+  #Atagged <- data.frame(Tokens = unlist(aWords, use.names = FALSE), Tags = Atags)
+  #Atagged = filter(Atagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
+  #Qtagged <- data.frame(Tokens = unlist(qWords, use.names = FALSE), Tags = Qtags)
+  #Qtagged = filter(Qtagged, Tags == "NN" | Tags == "NNS" | Tags == "NNPS" | Tags == "NNP" ) 
   #get set intersection of words that were tagged as nouns 
-  intersection = intersect(Atagged$Tokens, Qtagged$Tokens)
+  #intersection = intersect(Atagged$Tokens, Qtagged$Tokens)
   #return number of intersections
-  return(length(intersection))
+  #return(length(intersection))
+#}
+checkWord <- function(word){
+  exclusions <- c("I", "you", "he", "she",
+                  "it", "we", "they", "me", "him",
+                  "her", "us", "them", "what", "who",
+                  "whom", "mine", "yours", "his", "hers",
+                  "ours", "theirs", "this", "that", "these",
+                  "those", "whose", "which", "whatever", "whoever",
+                  "whomever", "whichever", "myself", "yourself", "himself",
+                  "herself", "itself", "ourselves", "themselves","everybody",
+                  "anybody", "anyone", "everyone", "nobody", "others",
+                  "somebody", "someone", "the", "a", "an")
+  for(item in exclusions){
+    if(word == item){
+      return("")
+    }
+  }
+  return(word)
 }
-qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), 
-                                                     as.character(qa$AnswerBody))))
+
+getIntersectionCount<- function(qBody, aBody){
+  #to see whether the answer looks like the question
+  #strip html and puncutation from qBody and aBody and lower text
+  qText = tolower(gsub("[[:punct:]]", " ", gsub("<.*?>", " ", qBody)))
+  #print(qText)
+  aText = tolower(gsub("[[:punct:]]", " ", gsub("<.*?>", " ", aBody)))
+  #print(aText)
+  aWords = unlist(strsplit(paste(" ", aText), "\\s+"))
+  aWords = mapply(checkWord, aWords)
+  aWords = aWords[aWords != ""]
+  #print(aWords)
+  qWords = unlist(strsplit(paste(" ", qText), "\\s+"))
+  qWords = mapply(checkWord, qWords)
+  qWords = qWords[qWords != ""]
+  #print(qWords)
+  #base = legnth(qWords) + length(aWords)
+  #for(aWord in aWords){
+  #  for(i in 1:length(count)){
+  #    if(aWord){
+  #      
+  #    }
+  #  }
+  #}
+  #inter <- intersect(qWords, aWords) 
+  intersec <- vecsets::vintersect(aWords, qWords)
+  #print(intersec)
+  return(length(intersec)/ (length(qWords) + length(aWords)))
+}
+
+
+qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), as.character(qa$AnswerBody))))

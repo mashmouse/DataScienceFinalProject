@@ -4,6 +4,7 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 #library(ngram)
+library(vecsets)
 
 #upload raw data from where they have been downloaded to
 #source (https://www.kaggle.com/pedromiguelmarques/tidytext-analysis-of-r-questions-on-stack-overflow/data?scriptVersionId=408262)
@@ -161,3 +162,5 @@ getIntersectionCount<- function(qBody, aBody){
 
 qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), 
                                                      as.character(qa$AnswerBody))))
+
+write.csv(qa, "cleanRquestionsData.csv")

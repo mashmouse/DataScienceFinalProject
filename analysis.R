@@ -18,17 +18,17 @@ qa = read.csv("~/Desktop/Data\ Science/DataScienceFinalProject/cleanData.csv")
 #Due to the nature of stack overflow, answers can have a negative score, so we will 
 #interpret "upvoted" as meaning a non-zero, positive score (indicating helpful)
 totalAnswers = nrow(answers)
-totalAnswersUpvoted = sum(answers$Score > 0)
-percentUpvoted = (totalAnswers/100.0) * totalAnswersUpvoted
-sprintf("The percentage of answers upvoted in this data is %.0f%% of %i", percentUpvoted, totalAnswers)
+totalAnswersUpvoted = sum(answers$AnswerScore > 0)
+percentUpvoted = as.double(100/totalAnswers) * as.double(totalAnswersUpvoted)
+sprintf("The percentage of answers upvoted in this data is %.5f%% of %i total answers.", percentUpvoted, totalAnswers)
 
 ### percentage questions with accepted answer
 #Since a question may only have 1 user accepted answer, we can simply compare the total 
 #number of accepted answers to the total number of questions
 totalQuestions = nrow(questions)
-totalAcceptedAnswers = sum(answers$isAcceptedAnswer == TRUE)
-percentAccepted = (totalQuestions/100.0) * totalAcceptedAnswers
-sprintf("The percentage of answers accepted in this data is %.0f%% of %i", percentageAccepted, totalQuestions)
+totalAcceptedAnswers = sum(answers$IsAcceptedAnswer == TRUE)
+percentAccepted = as.double(100/totalQuestions) * as.double(totalAcceptedAnswers)
+sprintf("The percentage of answers accepted in this data is %.5f%% of %i total questions.", percentAccepted, totalQuestions)
 
 ### do higher answer scores correlate with asker acceptance
 #create a model to examine correlation between these variables

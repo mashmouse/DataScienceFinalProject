@@ -3,22 +3,26 @@
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(ngram)
-library(openNLP)
-library(NLP)
+#library(ngram)
+library(vecsets)
 
 #upload raw data from where they have been downloaded to
 #source (https://www.kaggle.com/pedromiguelmarques/tidytext-analysis-of-r-questions-on-stack-overflow/data?scriptVersionId=408262)
-answers = read.csv("~/DataScience/FinalProject/rquestions/Answers.csv")
-tags = read.csv("~/DataScience/FinalProject/rquestions/Tags.csv")
-questions = read.csv("~/DataScience/FinalProject/rquestions/Questions.csv")
+answers = read.csv("~/Downloads/rquestions/Answers.csv")
+tags = read.csv("~/Downloads/rquestions/Tags.csv")
+questions = read.csv("~/Downloads/rquestions/Questions.csv")
 
 
 #mutate answer body length
 getBodyTextCount = function(content) {
   #strip html code tag and contents
   #strip remaining html
-  return(ngram::wordcount(gsub("<.*?>", " ", gsub("<code>(.*?)</code>", "", content))))
+  noHtml = gsub("<.*?>", " ", gsub("<code>(.*?)</code>", "", content))
+  #split into list of words
+  words = strsplit(noHtml, "\\s+")[[1]]
+  #remove empty string
+  words = words[words != ""]
+  return(length(words))
 }
 answers = mutate(answers,  answerTextLength = mapply(getBodyTextCount, answers$Body))
 
@@ -162,3 +166,5 @@ qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.
 qa = mutate(qa, ContainsCode = as.integer(as.logical(qa$ContainsCode)))
 qa = mutate(qa, ContainsImage = as.integer(as.logical(qa$ContainsImage)))
 qa = mutate(qa, ContainsLink = as.integer(as.logical(qa$ContainsLink)))
+
+write.csv(qa, "cleanRquestionsData.csv")

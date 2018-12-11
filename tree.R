@@ -3,7 +3,7 @@
 library(tree)
 
 #Create Tree
-tree1 <- tree(IsAcceptedAnswer~qa$ContainsImage + qa$ContainsCode + qa$AnswerScore + qa$ContainsLink + qa$ResponseTimeHours + qa$AnswerBodyTextLength + qa$QAwordIntersection, data=qa)
+tree1 <- tree(IsAcceptedAnswer~qa$ContainsImage + qa$ContainsCode + qa$AnswerScore + qa$ContainsLink + qa$ResponseTimeHours + qa$AnswerBodyTextLength + qa$QAwordIntersectioncd , data=qa)
 #Print Tree
 plot(tree1)
 text(tree1)

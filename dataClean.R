@@ -158,3 +158,7 @@ getIntersectionCount<- function(qBody, aBody){
 
 qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), 
                                                      as.character(qa$AnswerBody))))
+
+as.integer(as.logical(qa$ContainsCode))
+as.integer(as.logical(qa$ContainsImage))
+as.integer(as.logical(qa$ContainsLink))

@@ -163,4 +163,8 @@ getIntersectionCount<- function(qBody, aBody){
 qa = mutate(qa, QAwordIntersection = as.numeric(mapply(getIntersectionCount, as.character(qa$QuestionBody), 
                                                      as.character(qa$AnswerBody))))
 
+qa = mutate(qa, ContainsCode = as.integer(as.logical(qa$ContainsCode)))
+qa = mutate(qa, ContainsImage = as.integer(as.logical(qa$ContainsImage)))
+qa = mutate(qa, ContainsLink = as.integer(as.logical(qa$ContainsLink)))
+
 write.csv(qa, "cleanRquestionsData.csv")

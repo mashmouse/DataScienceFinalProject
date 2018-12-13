@@ -82,10 +82,24 @@ cor.test(answers$AnswerScore, as.numeric(answers$IsAcceptedAnswer))
 
 
 ### do images/code/links being included in answers correlate with asker acceptance?
+#pearson correlation test (-1 perfect neg cor -> 0 no cor -> 1 perfect pos cor)
 cor.test(as.numeric(qa$ContainsImage), as.numeric(qa$IsAcceptedAnswer))
 #.091
 cor.test(as.numeric(qa$ContainsCode), as.numeric(qa$IsAcceptedAnswer))
 #.103
 cor.test(as.numeric(qa$ContainsLink), as.numeric(qa$IsAcceptedAnswer))
 #.015
+
+
+### Pearson correlation test on body length, num intersect words, time diff
+cor.test(qa$AnswerBodyTextLength, as.numeric(qa$IsAcceptedAnswer))
+#.059
+cor.test(qa$QAwordIntersection, as.numeric(qa$IsAcceptedAnswer))
+#.112
+cor.test(qa$ResponseTimeHours, as.numeric(qa$IsAcceptedAnswer))
+#-0.178
+
+#These are all very bad correlation scores. However, they could be the result
+# of there not being a LINEAR relationship between any of the variables
+
 

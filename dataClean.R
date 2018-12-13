@@ -167,4 +167,6 @@ qa = mutate(qa, ContainsCode = as.integer(as.logical(qa$ContainsCode)))
 qa = mutate(qa, ContainsImage = as.integer(as.logical(qa$ContainsImage)))
 qa = mutate(qa, ContainsLink = as.integer(as.logical(qa$ContainsLink)))
 
+qa$IsAcceptedAnswer <- factor(ifelse(qa$IsAcceptedAnswer,"True","False"))
+
 write.csv(qa, "cleanRquestionsData.csv")
